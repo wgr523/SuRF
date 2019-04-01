@@ -25,6 +25,16 @@ public:
 	initRankLut();
     }
 
+    BitvectorRank(const position_t basic_block_size, 
+		  const level_t bitvector_per_level_len, 
+		  const std::vector<position_t>& num_bits_per_level,
+		  const level_t start_level = 0,
+		  const level_t end_level = 0/* non-inclusive */) 
+	: Bitvector(bitvector_per_level_len, num_bits_per_level, start_level, end_level) {
+	basic_block_size_ = basic_block_size;
+	initRankLut();
+    }
+
     ~BitvectorRank() {}
 
     // Counts the number of 1's in the bitvector up to position pos.

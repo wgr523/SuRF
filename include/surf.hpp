@@ -79,6 +79,7 @@ public:
                 const level_t hash_suffix_len, const level_t real_suffix_len);
 
     bool lookupKey(const std::string& key) const;
+    bool remove(const std::string& key);
     // This function searches in a conservative way: if inclusive is true
     // and the stored key prefix matches key, iter stays at this key prefix.
     SuRF::Iter moveToKeyGreaterThan(const std::string& key, const bool inclusive) const;
@@ -138,9 +139,18 @@ void SuRF::create(const std::vector<std::string>& keys,
 bool SuRF::lookupKey(const std::string& key) const {
     position_t connect_node_num = 0;
     if (!louds_dense_->lookupKey(key, connect_node_num))
-	return false;
+        return false;
     else if (connect_node_num != 0)
-	return louds_sparse_->lookupKey(key, connect_node_num);
+        return louds_sparse_->lookupKey(key, connect_node_num);
+    return true;
+}
+
+bool SuRF::remove(const std::string& key) {
+    position_t connect_node_num = 0;
+    if (!louds_dense_->remove(key, connect_node_num))
+        return false;
+    else if (connect_node_num != 0)
+        return louds_sparse_->remove(key, connect_node_num);
     return true;
 }
 

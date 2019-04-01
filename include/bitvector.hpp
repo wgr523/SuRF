@@ -25,6 +25,18 @@ public:
 	concatenateBitvectors(bitvector_per_level, num_bits_per_level, start_level, end_level);
     }
 
+    // this constructor init all bits to 0
+    Bitvector(const level_t bitvector_per_level_len, 
+	      const std::vector<position_t>& num_bits_per_level, 
+	      const level_t start_level = 0, 
+	      level_t end_level = 0/* non-inclusive */) {
+	if (end_level == 0)
+	    end_level = bitvector_per_level_len;
+	num_bits_ = totalNumBits(num_bits_per_level, start_level, end_level);
+	bits_ = new word_t[numWords()];
+	memset(bits_, 0, bitsSize());
+    }
+
     ~Bitvector() {}
 
     position_t numBits() const {
@@ -49,6 +61,7 @@ public:
     }
 
     bool readBit(const position_t pos) const;
+    void setBit(const position_t pos);
 
     position_t distanceToNextSetBit(const position_t pos) const;
     position_t distanceToPrevSetBit(const position_t pos) const;
@@ -72,6 +85,13 @@ bool Bitvector::readBit (const position_t pos) const {
     position_t word_id = pos / kWordSize;
     position_t offset = pos & (kWordSize - 1);
     return bits_[word_id] & (kMsbMask >> offset);
+}
+
+void Bitvector::setBit (const position_t pos) {
+    assert(pos < num_bits_);
+    position_t word_id = pos / kWordSize;
+    position_t offset = pos & (kWordSize - 1);
+    bits_[word_id] |= (kMsbMask >> offset);
 }
 
 position_t Bitvector::distanceToNextSetBit (const position_t pos) const {

@@ -88,6 +88,8 @@ public:
     // Returns whether key exists in the trie so far
     // out_node_num == 0 means search terminates in louds-dense.
     bool lookupKey(const std::string& key, position_t& out_node_num) const;
+    // new remove function in this project
+    bool remove(const std::string& key, position_t& out_node_num);
     // return value indicates potential false positive
     bool moveToKeyGreaterThan(const std::string& key, 
 			      const bool inclusive, LoudsDense::Iter& iter) const;
@@ -104,6 +106,7 @@ public:
 	child_indicator_bitmaps_->serialize(dst);
 	prefixkey_indicator_bits_->serialize(dst);
 	suffixes_->serialize(dst);
+    deleted_->serialize(dst);
 	align(dst);
     }
 
@@ -116,6 +119,7 @@ public:
 	louds_dense->child_indicator_bitmaps_ = BitvectorRank::deSerialize(src);
 	louds_dense->prefixkey_indicator_bits_ = BitvectorRank::deSerialize(src);
 	louds_dense->suffixes_ = BitvectorSuffix::deSerialize(src);
+	louds_dense->deleted_ = BitvectorRank::deSerialize(src);
 	align(src);
 	return louds_dense;
     }
@@ -125,6 +129,7 @@ public:
 	child_indicator_bitmaps_->destroy();
 	prefixkey_indicator_bits_->destroy();
 	suffixes_->destroy();
+    deleted_->destroy();
     }
 
 private:
@@ -147,6 +152,7 @@ private:
     BitvectorRank* child_indicator_bitmaps_;
     BitvectorRank* prefixkey_indicator_bits_; //1 bit per internal node
     BitvectorSuffix* suffixes_;
+    BitvectorRank* deleted_;
 };
 
 
@@ -164,6 +170,8 @@ LoudsDense::LoudsDense(const SuRFBuilder* builder) {
     prefixkey_indicator_bits_ = new BitvectorRank(kRankBasicBlockSize,
 						  builder->getPrefixkeyIndicatorBits(),
 						  builder->getNodeCounts(), 0, height_);
+    deleted_ = new BitvectorRank(kRankBasicBlockSize, builder->getBitmapLabels().size(),
+				       num_bits_per_level, 0, height_);
 
     if (builder->getSuffixType() == kNone) {
 	suffixes_ = new BitvectorSuffix();
@@ -188,7 +196,7 @@ bool LoudsDense::lookupKey(const std::string& key, position_t& out_node_num) con
 	pos = (node_num * kNodeFanout);
 	if (level >= key.length()) { //if run out of searchKey bytes
 	    if (prefixkey_indicator_bits_->readBit(node_num)) //if the prefix is also a key
-		return suffixes_->checkEquality(getSuffixPos(pos, true), key, level + 1);
+		return suffixes_->checkEquality(getSuffixPos(pos, true), key, level + 1) && !deleted_->readBit(pos);
 	    else
 		return false;
 	}
@@ -200,7 +208,45 @@ bool LoudsDense::lookupKey(const std::string& key, position_t& out_node_num) con
 	    return false;
 
 	if (!child_indicator_bitmaps_->readBit(pos)) //if trie branch terminates
-	    return suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1);
+	    return suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1) && !deleted_->readBit(pos);
+
+	node_num = getChildNodeNum(pos);
+    }
+    //search will continue in LoudsSparse
+    out_node_num = node_num;
+    return true;
+}
+
+bool LoudsDense::remove(const std::string& key, position_t& out_node_num) {
+    position_t node_num = 0;
+    position_t pos = 0;
+    for (level_t level = 0; level < height_; level++) {
+	pos = (node_num * kNodeFanout);
+	if (level >= key.length()) { //if run out of searchKey bytes
+	    if (prefixkey_indicator_bits_->readBit(node_num)) {//if the prefix is also a key
+            if (suffixes_->checkEquality(getSuffixPos(pos, true), key, level + 1) && !deleted_->readBit(pos)) {
+                deleted_->setBit(pos);
+                return true;
+            } else
+                return false;
+        }
+	    else
+		return false;
+	}
+	pos += (label_t)key[level];
+
+	//child_indicator_bitmaps_->prefetch(pos);
+
+	if (!label_bitmaps_->readBit(pos)) //if key byte does not exist
+	    return false;
+
+	if (!child_indicator_bitmaps_->readBit(pos)) {//if trie branch terminates
+	    if (suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1) && !deleted_->readBit(pos)) {
+            deleted_->setBit(pos);
+            return true;
+        } else
+            return false;
+    }
 
 	node_num = getChildNodeNum(pos);
     }

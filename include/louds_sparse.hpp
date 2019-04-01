@@ -71,6 +71,8 @@ public:
     // point query: trie walk starts at node "in_node_num" instead of root
     // in_node_num is provided by louds-dense's lookupKey function
     bool lookupKey(const std::string& key, const position_t in_node_num) const;
+    // new remove function in this project
+    bool remove(const std::string& key, const position_t in_node_num);
     // return value indicates potential false positive
     bool moveToKeyGreaterThan(const std::string& key, 
 			      const bool inclusive, LoudsSparse::Iter& iter) const;
@@ -94,6 +96,7 @@ public:
 	child_indicator_bits_->serialize(dst);
 	louds_bits_->serialize(dst);
 	suffixes_->serialize(dst);
+	deleted_->serialize(dst);
 	align(dst);
     }
 
@@ -112,6 +115,7 @@ public:
 	louds_sparse->child_indicator_bits_ = BitvectorRank::deSerialize(src);
 	louds_sparse->louds_bits_ = BitvectorSelect::deSerialize(src);
 	louds_sparse->suffixes_ = BitvectorSuffix::deSerialize(src);
+	louds_sparse->deleted_ = BitvectorRank::deSerialize(src);
 	align(src);
 	return louds_sparse;
     }
@@ -121,6 +125,7 @@ public:
 	child_indicator_bits_->destroy();
 	louds_bits_->destroy();
 	suffixes_->destroy();
+	deleted_->destroy();
     }
 
 private:
@@ -152,6 +157,7 @@ private:
     BitvectorRank* child_indicator_bits_;
     BitvectorSelect* louds_bits_;
     BitvectorSuffix* suffixes_;
+    BitvectorRank* deleted_;
 };
 
 
@@ -178,6 +184,8 @@ LoudsSparse::LoudsSparse(const SuRFBuilder* builder) {
 					      num_items_per_level, start_level_, height_);
     louds_bits_ = new BitvectorSelect(kSelectSampleInterval, builder->getLoudsBits(), 
 				      num_items_per_level, start_level_, height_);
+    deleted_ = new BitvectorRank(kRankBasicBlockSize, builder->getChildIndicatorBits().size(), 
+					      num_items_per_level, start_level_, height_);
 
     if (builder->getSuffixType() == kNone) {
 	suffixes_ = new BitvectorSuffix();
@@ -195,6 +203,36 @@ LoudsSparse::LoudsSparse(const SuRFBuilder* builder) {
     }
 }
 
+bool LoudsSparse::remove(const std::string& key, const position_t in_node_num) {
+    position_t node_num = in_node_num;
+    position_t pos = getFirstLabelPos(node_num);
+    level_t level = 0;
+    for (level = start_level_; level < key.length(); level++) {
+	//child_indicator_bits_->prefetch(pos);
+	if (!labels_->search((label_t)key[level], pos, nodeSize(pos)))
+	    return false;
+
+	// if trie branch terminates
+	if (!child_indicator_bits_->readBit(pos)) {
+	    if (suffixes_->checkEquality(getSuffixPos(pos), key, level + 1) && !deleted_->readBit(pos)) {
+            deleted_->setBit(pos);
+            return true;
+        } else
+            return false;
+    }
+
+	// move to child
+	node_num = getChildNodeNum(pos);
+	pos = getFirstLabelPos(node_num);
+    }
+    if ((labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos)))
+        if (suffixes_->checkEquality(getSuffixPos(pos), key, level + 1) && !deleted_->readBit(pos)) {
+            deleted_->setBit(pos);
+            return true;
+        }
+    return false;
+}
+
 bool LoudsSparse::lookupKey(const std::string& key, const position_t in_node_num) const {
     position_t node_num = in_node_num;
     position_t pos = getFirstLabelPos(node_num);
@@ -206,14 +244,14 @@ bool LoudsSparse::lookupKey(const std::string& key, const position_t in_node_num
 
 	// if trie branch terminates
 	if (!child_indicator_bits_->readBit(pos))
-	    return suffixes_->checkEquality(getSuffixPos(pos), key, level + 1);
+	    return suffixes_->checkEquality(getSuffixPos(pos), key, level + 1) && !deleted_->readBit(pos);
 
 	// move to child
 	node_num = getChildNodeNum(pos);
 	pos = getFirstLabelPos(node_num);
     }
     if ((labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos)))
-	return suffixes_->checkEquality(getSuffixPos(pos), key, level + 1);
+	return suffixes_->checkEquality(getSuffixPos(pos), key, level + 1) && !deleted_->readBit(pos);
     return false;
 }
 
