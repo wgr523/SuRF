@@ -204,11 +204,11 @@ bool LoudsDense::lookupKey(const std::string& key, position_t& out_node_num) con
 
 	//child_indicator_bitmaps_->prefetch(pos);
 
-	if (!label_bitmaps_->readBit(pos) || deleted_->readBit(pos))//if key byte does not exist or deleted
+	if (!label_bitmaps_->readBit(pos))//if key byte does not exist
 	    return false;
 
 	if (!child_indicator_bitmaps_->readBit(pos)) //if trie branch terminates
-	    return suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1);
+	    return suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1) && !deleted_->readBit(pos);
 
 	node_num = getChildNodeNum(pos);
     }
@@ -237,11 +237,11 @@ bool LoudsDense::remove(const std::string& key, position_t& out_node_num) {
 
 	//child_indicator_bitmaps_->prefetch(pos);
 
-	if (!label_bitmaps_->readBit(pos) || deleted_->readBit(pos))//if key byte does not exist or deleted
+	if (!label_bitmaps_->readBit(pos))//if key byte does not exist 
 	    return false;
 
 	if (!child_indicator_bitmaps_->readBit(pos)) {//if trie branch terminates
-	    if (suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1)) {
+	    if (suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1) && !deleted_->readBit(pos)) {
             deleted_->setBit(pos);
             return true;
         } else
@@ -283,7 +283,7 @@ bool LoudsDense::moveToKeyGreaterThan(const std::string& key,
 	}
 	//if trie branch terminates
 	if (!child_indicator_bitmaps_->readBit(pos))
-	    return compareSuffixGreaterThan(pos, key, level+1, inclusive, iter);
+	    return compareSuffixGreaterThan(pos, key, level+1, inclusive, iter) && !deleted_->readBit(pos);
 	node_num = getChildNodeNum(pos);
     }
 

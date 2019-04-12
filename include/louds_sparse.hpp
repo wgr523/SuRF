@@ -209,13 +209,12 @@ bool LoudsSparse::lookupKey(const std::string& key, const position_t in_node_num
     level_t level = 0;
     for (level = start_level_; level < key.length(); level++) {
 	//child_indicator_bits_->prefetch(pos);
-    //if we don't have this node, or the node is removed
-	if (!labels_->search((label_t)key[level], pos, nodeSize(pos)) || deleted_->readBit(pos))
+	if (!labels_->search((label_t)key[level], pos, nodeSize(pos)))
 	    return false;
 
 	// if trie branch terminates
 	if (!child_indicator_bits_->readBit(pos))
-	    return suffixes_->checkEquality(getSuffixPos(pos), key, level + 1);
+	    return suffixes_->checkEquality(getSuffixPos(pos), key, level + 1) && !deleted_->readBit(pos);
 
 	// move to child
 	node_num = getChildNodeNum(pos);
@@ -232,13 +231,14 @@ bool LoudsSparse::remove(const std::string& key, const position_t in_node_num) {
     level_t level = 0;
     for (level = start_level_; level < key.length(); level++) {
 	//child_indicator_bits_->prefetch(pos);
-    //if we don't have this node, or the node is removed
-	if (!labels_->search((label_t)key[level], pos, nodeSize(pos)) || deleted_->readBit(pos))
+    //if we don't have this node
+	if (!labels_->search((label_t)key[level], pos, nodeSize(pos)))
 	    return false;
 
 	// if trie branch terminates
 	if (!child_indicator_bits_->readBit(pos)) {
-	    if (suffixes_->checkEquality(getSuffixPos(pos), key, level + 1)) {
+	    if (suffixes_->checkEquality(getSuffixPos(pos), key, level + 1) && !deleted_->readBit(pos)) {
+            std::cout<<"remove at pos "<<pos<<std::endl;
             deleted_->setBit(pos);
             return true;
         } else
@@ -251,55 +251,14 @@ bool LoudsSparse::remove(const std::string& key, const position_t in_node_num) {
     }
     if ((!deleted_->readBit(pos)) && (labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos)))
         if (suffixes_->checkEquality(getSuffixPos(pos), key, level + 1)) {
+            std::cout<<"remove at pos "<<pos<<std::endl;
             deleted_->setBit(pos);
             return true;
         }
     return false;
 }
 
-bool LoudsSparse::moveToKeyGreaterThan(const std::string& key, 
-				       const bool inclusive, LoudsSparse::Iter& iter) const {
-    position_t node_num = iter.getStartNodeNum();
-    position_t pos = getFirstLabelPos(node_num);
 
-    level_t level;
-    for (level = start_level_; level < key.length(); level++) {
-	position_t node_size = nodeSize(pos);
-	// if no exact match or exact match is deleted
-	if (!labels_->search((label_t)key[level], pos, node_size) || deleted_->readBit(pos)) {
-	    moveToLeftInNextSubtrie(pos, node_size, key[level], iter);
-	    return false;
-	}
-
-	iter.append(key[level], pos);
-
-	// if trie branch terminates
-	if (!child_indicator_bits_->readBit(pos))
-	    return compareSuffixGreaterThan(pos, key, level+1, inclusive, iter);
-
-	// move to child
-	node_num = getChildNodeNum(pos);
-	pos = getFirstLabelPos(node_num);
-    }
-
-    if ((!deleted_->readBit(pos)) && (labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos))
-	&& !louds_bits_->readBit(pos + 1)) {
-	iter.append(kTerminator, pos);
-	iter.is_at_terminator_ = true;
-	if (!inclusive)
-	    iter++;
-	iter.is_valid_ = true;
-	return false;
-    }
-
-    if (key.length() <= level) {
-	iter.moveToLeftMostKey();
-	return false;
-    }
-
-    iter.is_valid_ = true;
-    return true;
-}
 
 uint64_t LoudsSparse::serializedSize() const {
     uint64_t size = sizeof(height_) + sizeof(start_level_)
