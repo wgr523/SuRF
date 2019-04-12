@@ -22,6 +22,7 @@ public:
 	    could_be_fp_ = false;
 	}
 
+    bool isDeleted() const;
 	void clear();
 	bool isValid() const;
 	bool getFpFlag() const;
@@ -242,12 +243,14 @@ void SuRF::iterAll(const std::string& left_key) {
 	    iter_.sparse_iter_.moveToLeftMostKey();
 	}
     }
+    while(iter_.isValid() && iter_.isDeleted()) { iter_++; }
     if (!iter_.isValid()) return;
-    for (;iter_.isValid();iter_++) {
-        std::cout<<iter_.dense_iter_.pos()<<" "<<iter_.getKey()<<std::endl;
-        if (iter_.sparse_iter_.isValid())
-            std::cout<<"\t"<<iter_.sparse_iter_.pos()<<std::endl;
-    }
+    std::cout<<iter_.getKey()<<" is the next non deleted"<<std::endl;
+    //for (;iter_.isValid();iter_++) {
+    //    std::cout<<iter_.dense_iter_.pos()<<" "<<iter_.getKey()<<" isDeleted: "<<iter_.isDeleted()<<std::endl;
+    //    if (iter_.sparse_iter_.isValid())
+    //        std::cout<<"\t"<<iter_.sparse_iter_.pos()<<std::endl;
+    //}
 }
 
 bool SuRF::lookupRange(const std::string& left_key, const bool left_inclusive, 
@@ -267,6 +270,8 @@ bool SuRF::lookupRange(const std::string& left_key, const bool left_inclusive,
 	    iter_.sparse_iter_.moveToLeftMostKey();
 	}
     }
+    // deletion part: ++ the iter until !isDeleted
+    while(iter_.isValid() && iter_.isDeleted()) { iter_++; }
     if (!iter_.isValid()) return false;
     int compare = iter_.compare(right_key);
     if (compare == kCouldBePositive)
@@ -295,6 +300,12 @@ level_t SuRF::getSparseStartLevel() const {
 }
 
 //============================================================================
+bool SuRF::Iter::isDeleted() const {
+    if (!dense_iter_.isValid()) return true;
+    if (sparse_iter_.isValid()) return sparse_iter_.isDeleted();
+    return dense_iter_.isDeleted();
+}
+
 void SuRF::Iter::clear() {
     dense_iter_.clear();
     sparse_iter_.clear();

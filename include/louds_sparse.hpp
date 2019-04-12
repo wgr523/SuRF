@@ -27,6 +27,7 @@ public:
 	}
 
 	position_t pos() const;
+	bool isDeleted() const;
 	void clear();
 	bool isValid() const { return is_valid_; };
 	int compare(const std::string& key) const;
@@ -375,6 +376,10 @@ bool LoudsSparse::compareSuffixGreaterThan(const position_t pos, const std::stri
 
 position_t LoudsSparse::Iter::pos() const {
     return pos_in_trie_[key_len_ - 1];
+}
+
+bool LoudsSparse::Iter::isDeleted() const {
+    return trie_->deleted_->readBit(pos());
 }
 
 void LoudsSparse::Iter::clear() {

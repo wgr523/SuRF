@@ -28,6 +28,7 @@ public:
 	}
 
 	position_t pos() const;
+	bool isDeleted() const;
 	void clear();
 	bool isValid() const { return is_valid_; };
 	bool isSearchComplete() const { return is_search_complete_; };
@@ -363,6 +364,11 @@ bool LoudsDense::compareSuffixGreaterThan(const position_t pos, const std::strin
 position_t LoudsDense::Iter::pos() const {
     return pos_in_trie_[key_len_ - 1];
 }
+
+bool LoudsDense::Iter::isDeleted() const {
+    return trie_->deleted_->readBit(pos());
+}
+
 void LoudsDense::Iter::clear() {
     is_valid_ = false;
     key_len_ = 0;
