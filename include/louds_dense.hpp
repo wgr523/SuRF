@@ -54,20 +54,20 @@ public:
 	inline void append(position_t pos);
 	inline void set(level_t level, position_t pos);
 	inline void setSendOutNodeNum(position_t node_num) { send_out_node_num_ = node_num; };
-	inline void setFlags(const bool is_valid, const bool is_search_complete, 
+	inline void setFlags(const bool is_valid, const bool is_search_complete,
 			     const bool is_move_left_complete,
 			     const bool is_move_right_complete);
 
     private:
-	// True means the iter either points to a valid key 
+	// True means the iter either points to a valid key
 	// or to a prefix with length trie_->getHeight()
 	bool is_valid_;
 	// If false, call moveToKeyGreaterThan in LoudsSparse to complete
-	bool is_search_complete_; 
+	bool is_search_complete_;
 	// If false, call moveToLeftMostKey in LoudsSparse to complete
 	bool is_move_left_complete_;
 	// If false, call moveToRightMostKey in LoudsSparse to complete
-	bool is_move_right_complete_; 
+	bool is_move_right_complete_;
 	LoudsDense* trie_;
 	position_t send_out_node_num_;
 	level_t key_len_; // Does NOT include suffix
@@ -91,7 +91,7 @@ public:
     // new remove function in this project
     bool remove(const std::string& key, position_t& out_node_num);
     // return value indicates potential false positive
-    bool moveToKeyGreaterThan(const std::string& key, 
+    bool moveToKeyGreaterThan(const std::string& key,
 			      const bool inclusive, LoudsDense::Iter& iter) const;
 
     uint64_t getHeight() const { return height_; };
@@ -138,8 +138,8 @@ private:
     position_t getNextPos(const position_t pos) const;
     position_t getPrevPos(const position_t pos, bool* is_out_of_bound) const;
 
-    bool compareSuffixGreaterThan(const position_t pos, const std::string& key, 
-				  const level_t level, const bool inclusive, 
+    bool compareSuffixGreaterThan(const position_t pos, const std::string& key,
+				  const level_t level, const bool inclusive,
 				  LoudsDense::Iter& iter) const;
 
 private:
@@ -182,7 +182,7 @@ LoudsDense::LoudsDense(const SuRFBuilder* builder) {
 	std::vector<position_t> num_suffix_bits_per_level;
 	for (level_t level = 0; level < height_; level++)
 	    num_suffix_bits_per_level.push_back(builder->getSuffixCounts()[level] * suffix_len);
-	suffixes_ = new BitvectorSuffix(builder->getSuffixType(), 
+	suffixes_ = new BitvectorSuffix(builder->getSuffixType(),
 					hash_suffix_len, real_suffix_len,
                                         builder->getSuffixes(),
 					num_suffix_bits_per_level, 0, height_);
@@ -237,7 +237,7 @@ bool LoudsDense::remove(const std::string& key, position_t& out_node_num) {
 
 	//child_indicator_bitmaps_->prefetch(pos);
 
-	if (!label_bitmaps_->readBit(pos))//if key byte does not exist 
+	if (!label_bitmaps_->readBit(pos))//if key byte does not exist
 	    return false;
 
 	if (!child_indicator_bitmaps_->readBit(pos)) {//if trie branch terminates
@@ -255,7 +255,7 @@ bool LoudsDense::remove(const std::string& key, position_t& out_node_num) {
     return true;
 }
 
-bool LoudsDense::moveToKeyGreaterThan(const std::string& key, 
+bool LoudsDense::moveToKeyGreaterThan(const std::string& key,
 				      const bool inclusive, LoudsDense::Iter& iter) const {
     position_t node_num = 0;
     position_t pos = 0;
@@ -264,26 +264,26 @@ bool LoudsDense::moveToKeyGreaterThan(const std::string& key,
 	pos = node_num * kNodeFanout;
 	if (level >= key.length()) { // if run out of searchKey bytes
 	    iter.append(getNextPos(pos - 1));
-	    if (prefixkey_indicator_bits_->readBit(node_num) && !deleted_->readBit(pos)) //if the prefix is also a key AND not removed
+	    if (prefixkey_indicator_bits_->readBit(node_num)) //if the prefix is also a key
 		iter.is_at_prefix_key_ = true;
 	    else
 		iter.moveToLeftMostKey();
 	    // valid, search complete, moveLeft complete, moveRight complete
-	    iter.setFlags(true, true, true, true); 
+	    iter.setFlags(true, true, true, true);
 	    return true;
 	}
 
 	pos += (label_t)key[level];
 	iter.append(pos);
 
-	// if no exact match or exact match is deleted
-	if (!label_bitmaps_->readBit(pos) || deleted_->readBit(pos)) {
+	// if no exact match
+	if (!label_bitmaps_->readBit(pos)) {
 	    iter++;
 	    return false;
 	}
 	//if trie branch terminates
 	if (!child_indicator_bitmaps_->readBit(pos))
-	    return compareSuffixGreaterThan(pos, key, level+1, inclusive, iter) && !deleted_->readBit(pos);
+	    return compareSuffixGreaterThan(pos, key, level+1, inclusive, iter);
 	node_num = getChildNodeNum(pos);
     }
 
@@ -341,8 +341,8 @@ position_t LoudsDense::getPrevPos(const position_t pos, bool* is_out_of_bound) c
     return (pos - distance);
 }
 
-bool LoudsDense::compareSuffixGreaterThan(const position_t pos, const std::string& key, 
-					  const level_t level, const bool inclusive, 
+bool LoudsDense::compareSuffixGreaterThan(const position_t pos, const std::string& key,
+					  const level_t level, const bool inclusive,
 					  LoudsDense::Iter& iter) const {
     position_t suffix_pos = getSuffixPos(pos, false);
     int compare = suffixes_->compare(suffix_pos, key, level);
@@ -434,7 +434,7 @@ void LoudsDense::Iter::set(level_t level, position_t pos) {
 }
 
 void LoudsDense::Iter::setFlags(const bool is_valid,
-				const bool is_search_complete, 
+				const bool is_search_complete,
 				const bool is_move_left_complete,
 				const bool is_move_right_complete) {
     is_valid_ = is_valid;
@@ -559,7 +559,7 @@ void LoudsDense::Iter::operator --(int) {
 	is_valid_ = false;
 	return;
     }
-    
+
     // if crossing node boundary
     while ((prev_pos / kNodeFanout) < (pos / kNodeFanout)) {
 	//if the current prefix is also a key
@@ -569,7 +569,7 @@ void LoudsDense::Iter::operator --(int) {
 	    // valid, search complete, moveLeft complete, moveRight complete
 	    return setFlags(true, true, true, true);
 	}
-	
+
 	key_len_--;
 	if (key_len_ == 0) {
 	    is_valid_ = false;

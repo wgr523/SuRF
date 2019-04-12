@@ -17,7 +17,7 @@ public:
     class Iter {
     public:
 	Iter() : is_valid_(false) {};
-	Iter(LoudsSparse* trie) : is_valid_(false), trie_(trie), start_node_num_(0), 
+	Iter(LoudsSparse* trie) : is_valid_(false), trie_(trie), start_node_num_(0),
 				  key_len_(0), is_at_terminator_(false) {
 	    start_level_ = trie_->getStartLevel();
 	    for (level_t level = start_level_; level < trie_->getHeight(); level++) {
@@ -74,7 +74,7 @@ public:
     // new remove function in this project
     bool remove(const std::string& key, const position_t in_node_num);
     // return value indicates potential false positive
-    bool moveToKeyGreaterThan(const std::string& key, 
+    bool moveToKeyGreaterThan(const std::string& key,
 			      const bool inclusive, LoudsSparse::Iter& iter) const;
 
     level_t getHeight() const { return height_; };
@@ -135,11 +135,11 @@ private:
     position_t getSuffixPos(const position_t pos) const;
     position_t nodeSize(const position_t pos) const;
 
-    void moveToLeftInNextSubtrie(position_t pos, const position_t node_size, 
+    void moveToLeftInNextSubtrie(position_t pos, const position_t node_size,
 				 const label_t label, LoudsSparse::Iter& iter) const;
     // return value indicates potential false positive
-    bool compareSuffixGreaterThan(const position_t pos, const std::string& key, 
-				  const level_t level, const bool inclusive, 
+    bool compareSuffixGreaterThan(const position_t pos, const std::string& key,
+				  const level_t level, const bool inclusive,
 				  LoudsSparse::Iter& iter) const;
 
 private:
@@ -180,11 +180,11 @@ LoudsSparse::LoudsSparse(const SuRFBuilder* builder) {
     for (level_t level = 0; level < height_; level++)
 	num_items_per_level.push_back(builder->getLabels()[level].size());
 
-    child_indicator_bits_ = new BitvectorRank(kRankBasicBlockSize, builder->getChildIndicatorBits(), 
+    child_indicator_bits_ = new BitvectorRank(kRankBasicBlockSize, builder->getChildIndicatorBits(),
 					      num_items_per_level, start_level_, height_);
-    louds_bits_ = new BitvectorSelect(kSelectSampleInterval, builder->getLoudsBits(), 
+    louds_bits_ = new BitvectorSelect(kSelectSampleInterval, builder->getLoudsBits(),
 				      num_items_per_level, start_level_, height_);
-    deleted_ = new BitvectorRank(kRankBasicBlockSize, builder->getChildIndicatorBits().size(), 
+    deleted_ = new BitvectorRank(kRankBasicBlockSize, builder->getChildIndicatorBits().size(),
 					      num_items_per_level, start_level_, height_);
 
     if (builder->getSuffixType() == kNone) {
@@ -258,7 +258,49 @@ bool LoudsSparse::remove(const std::string& key, const position_t in_node_num) {
     return false;
 }
 
+bool LoudsSparse::moveToKeyGreaterThan(const std::string& key,
+				       const bool inclusive, LoudsSparse::Iter& iter) const {
+    position_t node_num = iter.getStartNodeNum();
+    position_t pos = getFirstLabelPos(node_num);
 
+    level_t level;
+    for (level = start_level_; level < key.length(); level++) {
+	position_t node_size = nodeSize(pos);
+	// if no exact match
+	if (!labels_->search((label_t)key[level], pos, node_size)) {
+	    moveToLeftInNextSubtrie(pos, node_size, key[level], iter);
+	    return false;
+	}
+
+	iter.append(key[level], pos);
+
+	// if trie branch terminates
+	if (!child_indicator_bits_->readBit(pos))
+	    return compareSuffixGreaterThan(pos, key, level+1, inclusive, iter);
+
+	// move to child
+	node_num = getChildNodeNum(pos);
+	pos = getFirstLabelPos(node_num);
+    }
+
+    if ((labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos))
+	&& !louds_bits_->readBit(pos + 1)) {
+	iter.append(kTerminator, pos);
+	iter.is_at_terminator_ = true;
+	if (!inclusive)
+	    iter++;
+	iter.is_valid_ = true;
+	return false;
+    }
+
+    if (key.length() <= level) {
+	iter.moveToLeftMostKey();
+	return false;
+    }
+
+    iter.is_valid_ = true;
+    return true;
+}
 
 uint64_t LoudsSparse::serializedSize() const {
     uint64_t size = sizeof(height_) + sizeof(start_level_)
@@ -303,7 +345,7 @@ position_t LoudsSparse::nodeSize(const position_t pos) const {
     return louds_bits_->distanceToNextSetBit(pos);
 }
 
-void LoudsSparse::moveToLeftInNextSubtrie(position_t pos, const position_t node_size, 
+void LoudsSparse::moveToLeftInNextSubtrie(position_t pos, const position_t node_size,
 					  const label_t label, LoudsSparse::Iter& iter) const {
     // if no label is greater than key[level] in this node
     if (!labels_->searchGreaterThan(label, pos, node_size)) {
@@ -315,8 +357,8 @@ void LoudsSparse::moveToLeftInNextSubtrie(position_t pos, const position_t node_
     }
 }
 
-bool LoudsSparse::compareSuffixGreaterThan(const position_t pos, const std::string& key, 
-					   const level_t level, const bool inclusive, 
+bool LoudsSparse::compareSuffixGreaterThan(const position_t pos, const std::string& key,
+					   const level_t level, const bool inclusive,
 					   LoudsSparse::Iter& iter) const {
     position_t suffix_pos = getSuffixPos(pos);
     int compare = suffixes_->compare(suffix_pos, key, level);
@@ -343,7 +385,7 @@ int LoudsSparse::Iter::compare(const std::string& key) const {
     std::string key_sparse = key.substr(start_level_);
     std::string key_sparse_same_length = key_sparse.substr(0, iter_key.length());
     int compare = iter_key.compare(key_sparse_same_length);
-    if (compare != 0) 
+    if (compare != 0)
 	return compare;
     position_t suffix_pos = trie_->getSuffixPos(pos_in_trie_[key_len_ - 1]);
     return trie_->suffixes_->compare(suffix_pos, key_sparse, key_len_);
