@@ -203,18 +203,42 @@ LoudsSparse::LoudsSparse(const SuRFBuilder* builder) {
     }
 }
 
+bool LoudsSparse::lookupKey(const std::string& key, const position_t in_node_num) const {
+    position_t node_num = in_node_num;
+    position_t pos = getFirstLabelPos(node_num);
+    level_t level = 0;
+    for (level = start_level_; level < key.length(); level++) {
+	//child_indicator_bits_->prefetch(pos);
+    //if we don't have this node, or the node is removed
+	if (!labels_->search((label_t)key[level], pos, nodeSize(pos)) || deleted_->readBit(pos))
+	    return false;
+
+	// if trie branch terminates
+	if (!child_indicator_bits_->readBit(pos))
+	    return suffixes_->checkEquality(getSuffixPos(pos), key, level + 1);
+
+	// move to child
+	node_num = getChildNodeNum(pos);
+	pos = getFirstLabelPos(node_num);
+    }
+    if ((!deleted_->readBit(pos)) && (labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos)))
+        return suffixes_->checkEquality(getSuffixPos(pos), key, level + 1);
+    return false;
+}
+
 bool LoudsSparse::remove(const std::string& key, const position_t in_node_num) {
     position_t node_num = in_node_num;
     position_t pos = getFirstLabelPos(node_num);
     level_t level = 0;
     for (level = start_level_; level < key.length(); level++) {
 	//child_indicator_bits_->prefetch(pos);
-	if (!labels_->search((label_t)key[level], pos, nodeSize(pos)))
+    //if we don't have this node, or the node is removed
+	if (!labels_->search((label_t)key[level], pos, nodeSize(pos)) || deleted_->readBit(pos))
 	    return false;
 
 	// if trie branch terminates
 	if (!child_indicator_bits_->readBit(pos)) {
-	    if (suffixes_->checkEquality(getSuffixPos(pos), key, level + 1) && !deleted_->readBit(pos)) {
+	    if (suffixes_->checkEquality(getSuffixPos(pos), key, level + 1)) {
             deleted_->setBit(pos);
             return true;
         } else
@@ -225,33 +249,11 @@ bool LoudsSparse::remove(const std::string& key, const position_t in_node_num) {
 	node_num = getChildNodeNum(pos);
 	pos = getFirstLabelPos(node_num);
     }
-    if ((labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos)))
-        if (suffixes_->checkEquality(getSuffixPos(pos), key, level + 1) && !deleted_->readBit(pos)) {
+    if ((!deleted_->readBit(pos)) && (labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos)))
+        if (suffixes_->checkEquality(getSuffixPos(pos), key, level + 1)) {
             deleted_->setBit(pos);
             return true;
         }
-    return false;
-}
-
-bool LoudsSparse::lookupKey(const std::string& key, const position_t in_node_num) const {
-    position_t node_num = in_node_num;
-    position_t pos = getFirstLabelPos(node_num);
-    level_t level = 0;
-    for (level = start_level_; level < key.length(); level++) {
-	//child_indicator_bits_->prefetch(pos);
-	if (!labels_->search((label_t)key[level], pos, nodeSize(pos)))
-	    return false;
-
-	// if trie branch terminates
-	if (!child_indicator_bits_->readBit(pos))
-	    return suffixes_->checkEquality(getSuffixPos(pos), key, level + 1) && !deleted_->readBit(pos);
-
-	// move to child
-	node_num = getChildNodeNum(pos);
-	pos = getFirstLabelPos(node_num);
-    }
-    if ((labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos)))
-	return suffixes_->checkEquality(getSuffixPos(pos), key, level + 1) && !deleted_->readBit(pos);
     return false;
 }
 
@@ -263,8 +265,8 @@ bool LoudsSparse::moveToKeyGreaterThan(const std::string& key,
     level_t level;
     for (level = start_level_; level < key.length(); level++) {
 	position_t node_size = nodeSize(pos);
-	// if no exact match
-	if (!labels_->search((label_t)key[level], pos, node_size)) {
+	// if no exact match or exact match is deleted
+	if (!labels_->search((label_t)key[level], pos, node_size) || deleted_->readBit(pos)) {
 	    moveToLeftInNextSubtrie(pos, node_size, key[level], iter);
 	    return false;
 	}
@@ -280,7 +282,7 @@ bool LoudsSparse::moveToKeyGreaterThan(const std::string& key,
 	pos = getFirstLabelPos(node_num);
     }
 
-    if ((labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos))
+    if ((!deleted_->readBit(pos)) && (labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos))
 	&& !louds_bits_->readBit(pos + 1)) {
 	iter.append(kTerminator, pos);
 	iter.is_at_terminator_ = true;

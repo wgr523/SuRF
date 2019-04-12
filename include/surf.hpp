@@ -270,7 +270,6 @@ level_t SuRF::getSparseStartLevel() const {
 }
 
 //============================================================================
-
 void SuRF::Iter::clear() {
     dense_iter_.clear();
     sparse_iter_.clear();

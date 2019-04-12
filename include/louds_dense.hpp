@@ -195,8 +195,8 @@ bool LoudsDense::lookupKey(const std::string& key, position_t& out_node_num) con
     for (level_t level = 0; level < height_; level++) {
 	pos = (node_num * kNodeFanout);
 	if (level >= key.length()) { //if run out of searchKey bytes
-	    if (prefixkey_indicator_bits_->readBit(node_num)) //if the prefix is also a key
-		return suffixes_->checkEquality(getSuffixPos(pos, true), key, level + 1) && !deleted_->readBit(pos);
+	    if (prefixkey_indicator_bits_->readBit(node_num) && !deleted_->readBit(pos)) //if the prefix is also a key AND not removed
+		return suffixes_->checkEquality(getSuffixPos(pos, true), key, level + 1);
 	    else
 		return false;
 	}
@@ -204,11 +204,11 @@ bool LoudsDense::lookupKey(const std::string& key, position_t& out_node_num) con
 
 	//child_indicator_bitmaps_->prefetch(pos);
 
-	if (!label_bitmaps_->readBit(pos)) //if key byte does not exist
+	if (!label_bitmaps_->readBit(pos) || deleted_->readBit(pos))//if key byte does not exist or deleted
 	    return false;
 
 	if (!child_indicator_bitmaps_->readBit(pos)) //if trie branch terminates
-	    return suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1) && !deleted_->readBit(pos);
+	    return suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1);
 
 	node_num = getChildNodeNum(pos);
     }
@@ -223,8 +223,8 @@ bool LoudsDense::remove(const std::string& key, position_t& out_node_num) {
     for (level_t level = 0; level < height_; level++) {
 	pos = (node_num * kNodeFanout);
 	if (level >= key.length()) { //if run out of searchKey bytes
-	    if (prefixkey_indicator_bits_->readBit(node_num)) {//if the prefix is also a key
-            if (suffixes_->checkEquality(getSuffixPos(pos, true), key, level + 1) && !deleted_->readBit(pos)) {
+	    if (prefixkey_indicator_bits_->readBit(node_num) && !deleted_->readBit(pos)) { //if the prefix is also a key AND not removed
+            if (suffixes_->checkEquality(getSuffixPos(pos, true), key, level + 1)) {
                 deleted_->setBit(pos);
                 return true;
             } else
@@ -237,11 +237,11 @@ bool LoudsDense::remove(const std::string& key, position_t& out_node_num) {
 
 	//child_indicator_bitmaps_->prefetch(pos);
 
-	if (!label_bitmaps_->readBit(pos)) //if key byte does not exist
+	if (!label_bitmaps_->readBit(pos) || deleted_->readBit(pos))//if key byte does not exist or deleted
 	    return false;
 
 	if (!child_indicator_bitmaps_->readBit(pos)) {//if trie branch terminates
-	    if (suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1) && !deleted_->readBit(pos)) {
+	    if (suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1)) {
             deleted_->setBit(pos);
             return true;
         } else
@@ -264,7 +264,7 @@ bool LoudsDense::moveToKeyGreaterThan(const std::string& key,
 	pos = node_num * kNodeFanout;
 	if (level >= key.length()) { // if run out of searchKey bytes
 	    iter.append(getNextPos(pos - 1));
-	    if (prefixkey_indicator_bits_->readBit(node_num)) //if the prefix is also a key
+	    if (prefixkey_indicator_bits_->readBit(node_num) && !deleted_->readBit(pos)) //if the prefix is also a key AND not removed
 		iter.is_at_prefix_key_ = true;
 	    else
 		iter.moveToLeftMostKey();
@@ -276,8 +276,8 @@ bool LoudsDense::moveToKeyGreaterThan(const std::string& key,
 	pos += (label_t)key[level];
 	iter.append(pos);
 
-	// if no exact match
-	if (!label_bitmaps_->readBit(pos)) {
+	// if no exact match or exact match is deleted
+	if (!label_bitmaps_->readBit(pos) || deleted_->readBit(pos)) {
 	    iter++;
 	    return false;
 	}
