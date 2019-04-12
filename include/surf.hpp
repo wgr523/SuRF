@@ -86,6 +86,7 @@ public:
     SuRF::Iter moveToKeyLessThan(const std::string& key, const bool inclusive) const;
     SuRF::Iter moveToFirst() const;
     SuRF::Iter moveToLast() const;
+    void iterAll(const std::string& left_key);
     bool lookupRange(const std::string& left_key, const bool left_inclusive, 
 		     const std::string& right_key, const bool right_inclusive);
 
@@ -223,6 +224,30 @@ SuRF::Iter SuRF::moveToLast() const {
 	iter.sparse_iter_.moveToRightMostKey();
     }
     return iter;
+}
+
+void SuRF::iterAll(const std::string& left_key) {
+    iter_.clear();
+    louds_dense_->moveToKeyGreaterThan(left_key, true, iter_.dense_iter_);
+    if (!iter_.dense_iter_.isValid()) return;
+    if (!iter_.dense_iter_.isComplete()) {
+	if (!iter_.dense_iter_.isSearchComplete()) {
+	    iter_.passToSparse();
+	    louds_sparse_->moveToKeyGreaterThan(left_key, true, iter_.sparse_iter_);
+	    if (!iter_.sparse_iter_.isValid()) {
+		iter_.incrementDenseIter();
+	    }
+	} else if (!iter_.dense_iter_.isMoveLeftComplete()) {
+	    iter_.passToSparse();
+	    iter_.sparse_iter_.moveToLeftMostKey();
+	}
+    }
+    if (!iter_.isValid()) return;
+    for (;iter_.isValid();iter_++) {
+        std::cout<<iter_.dense_iter_.pos()<<" "<<iter_.getKey()<<std::endl;
+        if (iter_.sparse_iter_.isValid())
+            std::cout<<"\t"<<iter_.sparse_iter_.pos()<<std::endl;
+    }
 }
 
 bool SuRF::lookupRange(const std::string& left_key, const bool left_inclusive, 

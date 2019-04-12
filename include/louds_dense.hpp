@@ -27,6 +27,7 @@ public:
 	    }
 	}
 
+	position_t pos() const;
 	void clear();
 	bool isValid() const { return is_valid_; };
 	bool isSearchComplete() const { return is_search_complete_; };
@@ -225,6 +226,7 @@ bool LoudsDense::remove(const std::string& key, position_t& out_node_num) {
 	if (level >= key.length()) { //if run out of searchKey bytes
 	    if (prefixkey_indicator_bits_->readBit(node_num) && !deleted_->readBit(pos)) { //if the prefix is also a key AND not removed
             if (suffixes_->checkEquality(getSuffixPos(pos, true), key, level + 1)) {
+                std::cout<<"dense remove at pos"<<pos<<std::endl;
                 deleted_->setBit(pos);
                 return true;
             } else
@@ -242,6 +244,7 @@ bool LoudsDense::remove(const std::string& key, position_t& out_node_num) {
 
 	if (!child_indicator_bitmaps_->readBit(pos)) {//if trie branch terminates
 	    if (suffixes_->checkEquality(getSuffixPos(pos, false), key, level + 1) && !deleted_->readBit(pos)) {
+            std::cout<<"dense remove at pos"<<pos<<std::endl;
             deleted_->setBit(pos);
             return true;
         } else
@@ -357,6 +360,9 @@ bool LoudsDense::compareSuffixGreaterThan(const position_t pos, const std::strin
 
 //============================================================================
 
+position_t LoudsDense::Iter::pos() const {
+    return pos_in_trie_[key_len_ - 1];
+}
 void LoudsDense::Iter::clear() {
     is_valid_ = false;
     key_len_ = 0;
