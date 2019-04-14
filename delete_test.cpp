@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "include/surf.hpp"
+#include "dynamic_include/surf.hpp"
 
 using namespace surf;
 
@@ -17,8 +17,10 @@ int main() {
     };
 
     // basic surf
-    SuRF* surf = new SuRF(keys, true, 0, surf::kNone, 0, 0);
+    SuRF* surf = new SuRF(keys, true, 16, surf::kNone, 0, 0);//change 16 to smaller e.g. 0 will make it use dense louds encoding.
 
+    std::cout << "Serialized Size: " <<surf->serializedSize()<< std::endl;
+    std::cout << "Mem Size: " <<surf->getMemoryUsage()<< std::endl;
     //----------------------------------------
     // point queries
     //----------------------------------------
