@@ -240,7 +240,6 @@ bool LoudsSparse::remove(const std::string& key, const position_t in_node_num) {
 	// if trie branch terminates
 	if (!child_indicator_bits_->readBit(pos)) {
 	    if (suffixes_->checkEquality(getSuffixPos(pos), key, level + 1) && !deleted_->readBit(pos)) {
-            std::cout<<"remove at pos "<<pos<<std::endl;
             deleted_->setBit(pos);
             return true;
         } else
@@ -253,7 +252,6 @@ bool LoudsSparse::remove(const std::string& key, const position_t in_node_num) {
     }
     if ((!deleted_->readBit(pos)) && (labels_->read(pos) == kTerminator) && (!child_indicator_bits_->readBit(pos)))
         if (suffixes_->checkEquality(getSuffixPos(pos), key, level + 1)) {
-            std::cout<<"remove at pos "<<pos<<std::endl;
             deleted_->setBit(pos);
             return true;
         }

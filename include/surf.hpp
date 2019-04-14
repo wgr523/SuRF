@@ -87,7 +87,7 @@ public:
     SuRF::Iter moveToKeyLessThan(const std::string& key, const bool inclusive) const;
     SuRF::Iter moveToFirst() const;
     SuRF::Iter moveToLast() const;
-    void iterAll(const std::string& left_key);
+    void printNextIter(const std::string& left_key);
     bool lookupRange(const std::string& left_key, const bool left_inclusive, 
 		     const std::string& right_key, const bool right_inclusive);
 
@@ -227,7 +227,8 @@ SuRF::Iter SuRF::moveToLast() const {
     return iter;
 }
 
-void SuRF::iterAll(const std::string& left_key) {
+//this function is just for test
+void SuRF::printNextIter(const std::string& left_key) {
     iter_.clear();
     louds_dense_->moveToKeyGreaterThan(left_key, true, iter_.dense_iter_);
     if (!iter_.dense_iter_.isValid()) return;
@@ -245,7 +246,7 @@ void SuRF::iterAll(const std::string& left_key) {
     }
     while(iter_.isValid() && iter_.isDeleted()) { iter_++; }
     if (!iter_.isValid()) return;
-    std::cout<<iter_.getKey()<<" is the next non deleted"<<std::endl;
+    std::cout<<iter_.getKey()<<" is the next non deleted key."<<std::endl;
     //for (;iter_.isValid();iter_++) {
     //    std::cout<<iter_.dense_iter_.pos()<<" "<<iter_.getKey()<<" isDeleted: "<<iter_.isDeleted()<<std::endl;
     //    if (iter_.sparse_iter_.isValid())
