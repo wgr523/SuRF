@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -Wall -Werror -mpopcnt -pthread -std=c++11  -rdynamic CMakeFiles/test_bitvector.dir/test_bitvector.cpp.o  -o test_bitvector -lgtest 

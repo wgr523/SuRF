@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -Wall -Werror -mpopcnt -pthread -std=c++11  -rdynamic CMakeFiles/test_surf_builder.dir/test_surf_builder.cpp.o  -o test_surf_builder -lgtest 

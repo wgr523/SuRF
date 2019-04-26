@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -Wall -Werror -mpopcnt -pthread -std=c++11  -rdynamic CMakeFiles/test_rank.dir/test_rank.cpp.o  -o test_rank -lgtest 
