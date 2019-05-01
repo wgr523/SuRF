@@ -117,7 +117,8 @@ int main() {
     auto duration = duration_cast<microseconds>( t2 - t1 ).count();
 
     std::cout<< "insert all " << dataSet.size() << " datasets " << duration << " s" << std::endl;
-
+    std::cout << "Serialized Size: " <<surf->serializedSize()<< std::endl;
+    std::cout << "Mem Size: " <<surf->getMemoryUsage()<< std::endl;
 
 
     high_resolution_clock::time_point t3 = high_resolution_clock::now();

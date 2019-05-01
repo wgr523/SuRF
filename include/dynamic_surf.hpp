@@ -54,6 +54,8 @@ public:
     ~DynamicSurf(){}
 
     //functions
+    uint64_t serializedSize() const;
+    uint64_t getMemoryUsage() const;
     void insertKey(const std::string& key);
     void deleteKey(const std::string& key);
     bool lookupKey(const std::string& key);
@@ -67,6 +69,14 @@ private:
 
 void DynamicSurf::merge(){
     std::cout << "Not Implemented" << std::endl;
+}
+
+uint64_t SuRF::serializedSize() const {
+    return ();
+}
+
+uint64_t SuRF::getMemoryUsage() const {
+    return (sizeof(SuRF) + louds_dense_->getMemoryUsage() + louds_sparse_->getMemoryUsage());
 }
 
 

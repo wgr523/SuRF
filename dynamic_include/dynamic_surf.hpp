@@ -15,6 +15,9 @@
 
 namespace surf{
 
+
+
+
 class DynamicSurf{
 
 public:
@@ -55,6 +58,8 @@ public:
     ~DynamicSurf(){}
 
     //functions
+    uint64_t serializedSize() const;
+    uint64_t getMemoryUsage() const;
     void insertKey(const std::string& key);
     void deleteKey(const std::string& key);
     bool lookupKey(const std::string& key);
@@ -65,6 +70,22 @@ private:
     void merge();
 };
 
+
+unsigned long mapSize(const std::map<std::string, bool> &map){
+    unsigned long size = sizeof(map);
+    for(typename std::map<std::string, bool>::const_iterator it = map.begin(); it != map.end(); ++it){
+        size += it->first.size();
+    }
+    return size;
+}
+
+uint64_t DynamicSurf::serializedSize() const {
+    return originSurf->serializedSize() + mapSize(hashBuffer);
+}
+
+uint64_t DynamicSurf::getMemoryUsage() const {
+    return originSurf->getMemoryUsage();
+}
 
 void DynamicSurf::merge(){
     std::vector<std::string> keys = {};

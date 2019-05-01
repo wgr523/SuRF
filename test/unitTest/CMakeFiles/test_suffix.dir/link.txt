@@ -1,1 +1,0 @@
-/usr/bin/c++   -O3 -Wall -Werror -mpopcnt -pthread -std=c++11  -rdynamic CMakeFiles/test_suffix.dir/test_suffix.cpp.o  -o test_suffix -lgtest 

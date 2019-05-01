@@ -50,6 +50,8 @@ public:
     ~DummySurf(){}
 
     //functions
+    uint64_t serializedSize() const;
+    uint64_t getMemoryUsage() const;
     void insertKey(const std::string& key);
     void deleteKey(const std::string& key);
     bool lookupKey(const std::string& key);
@@ -71,6 +73,14 @@ void DummySurf::merge(){
     originSurf = new SuRF(keys);
     
     //std::cout << std::endl << "Merged: New Surf of size " << size << " created."  << std::endl;
+}
+
+uint64_t DummySurf::serializedSize() const {
+    return originSurf->serializedSize();
+}
+
+uint64_t DummySurf::getMemoryUsage() const {
+    return originSurf->getMemoryUsage();
 }
 
 

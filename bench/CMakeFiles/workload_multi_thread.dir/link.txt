@@ -1,1 +1,0 @@
-/usr/bin/c++   -O3 -Wall -Werror -mpopcnt -pthread -std=c++11  -rdynamic CMakeFiles/workload_multi_thread.dir/workload_multi_thread.cpp.o  -o workload_multi_thread 

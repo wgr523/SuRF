@@ -1,1 +1,0 @@
-/usr/bin/c++   -O3 -Wall -Werror -mpopcnt -pthread -std=c++11  -rdynamic CMakeFiles/test_louds_sparse.dir/test_louds_sparse.cpp.o  -o test_louds_sparse -lgtest 
