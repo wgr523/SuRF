@@ -15,9 +15,6 @@
 
 namespace surf{
 
-
-
-
 class DynamicSurf{
 
 public:
@@ -67,7 +64,7 @@ public:
 		     const std::string& right_key, const bool right_inclusive);
 
 private:
-    void merge();
+    void rebuild();
 };
 
 
@@ -87,7 +84,7 @@ uint64_t DynamicSurf::getMemoryUsage() const {
     return originSurf->getMemoryUsage();
 }
 
-void DynamicSurf::merge(){
+void DynamicSurf::rebuild(){
     std::vector<std::string> keys = {};
     int size = 0;
     for (std::map<std::string, bool>::iterator i = mainMemory->begin(); i != mainMemory->end(); i++){
@@ -102,20 +99,21 @@ void DynamicSurf::merge(){
 
 
 void DynamicSurf::insertKey(const std::string& key){
-    hashBuffer.insert({key,true});
-    mainMemory->insert({key,true});
-    if(hashBuffer.size() == bufferLimit){
-        merge();
+    if ( mainMemory->insert({key,true}).second ) {//means insert successful
+        hashBuffer.insert({key,true});
+        if(hashBuffer.size() == bufferLimit){
+            rebuild();
+        }
     }
 }
 
 void DynamicSurf::deleteKey(const std::string& key){
-    //erase return 0 if not found in buffer
-    if( ! hashBuffer.erase(key))
+    //erase return 0 if not found in buffer, and we do nothing
+    if (mainMemory->erase(key))
     {
+        hashBuffer.erase(key);
         originSurf->remove(key);
     }
-    mainMemory->erase(key);
 }
 
 bool DynamicSurf::lookupKey(const std::string& key){
@@ -124,9 +122,9 @@ bool DynamicSurf::lookupKey(const std::string& key){
 
 
 bool hashBufferRangeHelper(std::map<std::string, bool> map,
-             const std::string& left_key, const bool left_inclusive, 
-		     const std::string& right_key, const bool right_inclusive){
-    
+        const std::string& left_key, const bool left_inclusive, 
+        const std::string& right_key, const bool right_inclusive){
+
     if(left_key.compare(right_key) > 0)
         return false;
     bool leftFlag = false;
@@ -140,16 +138,16 @@ bool hashBufferRangeHelper(std::map<std::string, bool> map,
             leftFlag = true;
         if(leftFlag &&((rightBoundary <=0 && right_inclusive)||(rightBoundary < 0 && !right_inclusive)))
             rightFlag = true;
-        
+
     }
     return leftFlag && rightFlag;
 }
 
 bool DynamicSurf::lookupRange(const std::string& left_key, const bool left_inclusive, 
-		     const std::string& right_key, const bool right_inclusive){
-   
+        const std::string& right_key, const bool right_inclusive){
+
     return originSurf -> lookupRange(left_key,left_inclusive,right_key,right_inclusive) 
-    || (hashBufferRangeHelper(hashBuffer,left_key,left_inclusive,right_key,right_inclusive));
+        || (hashBufferRangeHelper(hashBuffer,left_key,left_inclusive,right_key,right_inclusive));
 }
 
 

@@ -35,12 +35,12 @@ Note that the key list passed to the SuRF constructor must be SORTED.
 ### Compiling
 This is for dummy (the thing our algorithm is compared to).
 ```
-g++ -mpopcnt -std=c++11 dummy_surf_eval.cpp -o dummy
+g++ -mpopcnt -std=c++11 eval_dummy.cpp -o dummy
 ```
 
 This is for dynamic.
 ```
-g++ -mpopcnt -std=c++11 dynamic_surf_eval.cpp -o dynamic
+g++ -mpopcnt -std=c++11 eval_dynamic.cpp -o dynamic
 ```
 ### Test data preparation
 `python datasets_even.py` or `python datasets_inter.py`

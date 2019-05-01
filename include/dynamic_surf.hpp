@@ -19,36 +19,33 @@ class DynamicSurf{
 
 public:
     //members
-    std::map<std::string, bool> hashBuffer;
-    std::vector<SuRF*> surfCollection;
-    int bufferLimit;
-    int surfCollectionSizeLimit;
+    SuRF* originSurf;
+    std::map<std::string, bool>* mainMemory;
 
     //ctor/dctor
     DynamicSurf(){}
     
-    DynamicSurf(const std::vector<std::string>& keys, int bufferSize, int surfCollectionSize ) {
-        SuRF* surf = new SuRF(keys);
-        surfCollection.push_back(surf);
-        bufferLimit = bufferSize;
-        surfCollectionSizeLimit = surfCollectionSize;
+    DynamicSurf(const std::vector<std::string>& keys, int bufferSize, std::map<std::string, bool>* memory ) {
+        originSurf = new SuRF(keys);
+        mainMemory = memory;
+        // we don't use bufferSize, we just put it here for the same as true dynamic surf
     }
 
     DynamicSurf(const std::vector<std::string>& keys, const SuffixType suffix_type,
-	 const level_t hash_suffix_len, const level_t real_suffix_len, int bufferSize, int surfCollectionSize) {
-        SuRF* surf = new SuRF(keys,suffix_type,hash_suffix_len,real_suffix_len);
-        surfCollection.push_back(surf);
-        bufferLimit = bufferSize;
-        surfCollectionSizeLimit = surfCollectionSize;
+	 const level_t hash_suffix_len, const level_t real_suffix_len, int bufferSize
+     , std::map<std::string, bool>* memory ) {
+        originSurf = new SuRF(keys,suffix_type,hash_suffix_len,real_suffix_len);
+        mainMemory = memory;
+
     }
     
     DynamicSurf(const std::vector<std::string>& keys,
 	 const bool include_dense, const uint32_t sparse_dense_ratio,
-	 const SuffixType suffix_type, const level_t hash_suffix_len, const level_t real_suffix_len, int bufferSize, int surfCollectionSize) {
-	    SuRF* surf = new SuRF(keys,include_dense,sparse_dense_ratio,suffix_type,hash_suffix_len,real_suffix_len);
-        surfCollection.push_back(surf);
-        bufferLimit = bufferSize;
-        surfCollectionSizeLimit = surfCollectionSize;
+	 const SuffixType suffix_type, const level_t hash_suffix_len, const level_t real_suffix_len, int bufferSize
+     , std::map<std::string, bool>* memory ) {
+	    originSurf = new SuRF(keys,include_dense,sparse_dense_ratio,suffix_type,hash_suffix_len,real_suffix_len);
+        mainMemory = memory;
+
     }
 
     ~DynamicSurf(){}
@@ -63,82 +60,52 @@ public:
 		     const std::string& right_key, const bool right_inclusive);
 
 private:
-    void merge();
+    void rebuild();
 };
 
 
-void DynamicSurf::merge(){
-    std::cout << "Not Implemented" << std::endl;
+void DynamicSurf::rebuild(){
+    std::vector<std::string> keys = {};
+    int size = 0;
+    for (std::map<std::string, bool>::iterator i = mainMemory->begin(); i != mainMemory->end(); i++){
+        keys.push_back(i->first);       
+        size++;
+    }
+    originSurf = new SuRF(keys);
+    
+    //std::cout << std::endl << "Merged: New Surf of size " << size << " created."  << std::endl;
 }
 
-uint64_t SuRF::serializedSize() const {
-    return ();
+uint64_t DynamicSurf::serializedSize() const {
+    return originSurf->serializedSize();
 }
 
-uint64_t SuRF::getMemoryUsage() const {
-    return (sizeof(SuRF) + louds_dense_->getMemoryUsage() + louds_sparse_->getMemoryUsage());
+uint64_t DynamicSurf::getMemoryUsage() const {
+    return originSurf->getMemoryUsage();
 }
 
 
 void DynamicSurf::insertKey(const std::string& key){
-    hashBuffer[key] = true;
-    std::cout << hashBuffer.size() << std::endl;
-    if(hashBuffer.size() == bufferLimit){
-        std::vector<std::string> v;
-        for(std::map<std::string, bool>::iterator it = hashBuffer.begin(); it != hashBuffer.end(); ++it) {
-            v.push_back(it->first);
-        }
-        SuRF* surf = new SuRF(v);
-        surfCollection.push_back(surf);
-        std::cout <<" a "<< surfCollection.size() << std::endl;
-        if(surfCollection.size() == surfCollectionSizeLimit){
-            merge();
-        }
+    if ( mainMemory->insert({key,true}).second ) {//means insert successful
+        rebuild();
     }
+}
+
+void DynamicSurf::deleteKey(const std::string& key){
+    //erase return 0 if not found in buffer, and we do nothing
+    if (mainMemory->erase(key))
+        rebuild();
 }
 
 bool DynamicSurf::lookupKey(const std::string& key){
-
-    bool retVal = false;
-    for(int i =0; i<surfCollection.size(); i++){
-        SuRF* surf = surfCollection[i];
-        retVal = surf -> lookupKey(key) || retVal;
-    }
-    return retVal || (hashBuffer.count(key) > 0);
+    return originSurf -> lookupKey(key);
 }
 
-
-bool hashBufferRangeHelper(std::map<std::string, bool> map,
-             const std::string& left_key, const bool left_inclusive, 
-		     const std::string& right_key, const bool right_inclusive){
-    
-    if(left_key.compare(right_key) > 0)
-        return false;
-    bool leftFlag = false;
-    bool rightFlag = false;
-    for (std::map<std::string, bool>::iterator i = map.begin(); i != map.end(); i++)
-    {
-        //leftkey is less than the left boundary in map
-        int leftBoundary = i->first.compare(left_key);
-        int rightBoundary = i->first.compare(right_key);
-        if((leftBoundary >= 0 && left_inclusive) || (leftBoundary > 0 && !left_inclusive ))
-            leftFlag = true;
-        if(leftFlag &&((rightBoundary <=0 && right_inclusive)||(rightBoundary < 0 && !right_inclusive)))
-            rightFlag = true;
-        std::cout << i->first << leftBoundary << rightBoundary <<std::endl;
-        
-    }
-    return leftFlag && rightFlag;
-}
 
 bool DynamicSurf::lookupRange(const std::string& left_key, const bool left_inclusive, 
 		     const std::string& right_key, const bool right_inclusive){
-    bool retVal = false;
-    for(int i =0; i<surfCollection.size(); i++){
-        SuRF* surf = surfCollection[i];
-        retVal = surf -> lookupRange(left_key,left_inclusive,right_key,right_inclusive) || retVal;
-    }
-    return retVal || (hashBufferRangeHelper(hashBuffer,left_key,left_inclusive,right_key,right_inclusive));
+   
+    return originSurf -> lookupRange(left_key,left_inclusive,right_key,right_inclusive);
 }
 
 

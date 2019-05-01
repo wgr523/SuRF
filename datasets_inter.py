@@ -1,7 +1,7 @@
 
-words = open("words.txt")
-words_small = open("words_small.txt", "w")
-words_large = open("words_large.txt","w")
+words = open("words/words.txt")
+words_small = open("words/words_small.txt", "w")
+words_large = open("words/words_large.txt","w")
 # perform file operations
 i = 0
 num_lines = sum(1 for line in open('words.txt'))
