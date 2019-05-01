@@ -31,6 +31,20 @@ g++ -mpopcnt -std=c++11 simple_example.cpp
 ```
 Note that the key list passed to the SuRF constructor must be SORTED.
 
+## Project Evaluation
+
+This is for dummy (the thing our algorithm is compared to).
+```
+g++ -mpopcnt -std=c++11 dummy_surf_eval.cpp
+mv a.out dummy
+```
+
+This is for dynamic.
+```
+g++ -mpopcnt -std=c++11 dynamic_surf_eval.cpp
+mv a.out dynamic
+```
+
 ## Run Unit Tests
     make test
 
