@@ -32,18 +32,21 @@ g++ -mpopcnt -std=c++11 simple_example.cpp
 Note that the key list passed to the SuRF constructor must be SORTED.
 
 ## Project Evaluation
-
+### Compiling
 This is for dummy (the thing our algorithm is compared to).
 ```
-g++ -mpopcnt -std=c++11 dummy_surf_eval.cpp
-mv a.out dummy
+g++ -mpopcnt -std=c++11 dummy_surf_eval.cpp -o dummy
 ```
 
 This is for dynamic.
 ```
-g++ -mpopcnt -std=c++11 dynamic_surf_eval.cpp
-mv a.out dynamic
+g++ -mpopcnt -std=c++11 dynamic_surf_eval.cpp -o dynamic
 ```
+### Test data preparation
+`python datasets_even.py` or `python datasets_inter.py`
+
+### Execution of the evaluation
+`./dummy` and `./dynamic`
 
 ## Run Unit Tests
     make test
