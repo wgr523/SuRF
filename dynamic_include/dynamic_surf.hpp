@@ -68,16 +68,16 @@ private:
 };
 
 
-unsigned long mapSize(const std::map<std::string, bool> &map){
-    unsigned long size = sizeof(map);
-    for(typename std::map<std::string, bool>::const_iterator it = map.begin(); it != map.end(); ++it){
-        size += it->first.size();
-    }
-    return size;
-}
+//unsigned long mapSize(const std::map<std::string, bool> &map){
+//    unsigned long size = sizeof(map);
+//    for(typename std::map<std::string, bool>::const_iterator it = map.begin(); it != map.end(); ++it){
+//        size += it->first.size();
+//    }
+//    return size;
+//}
 
 uint64_t DynamicSurf::serializedSize() const {
-    return originSurf->serializedSize() + mapSize(hashBuffer);
+    return originSurf->serializedSize();
 }
 
 uint64_t DynamicSurf::getMemoryUsage() const {
@@ -121,26 +121,18 @@ bool DynamicSurf::lookupKey(const std::string& key){
 }
 
 
-bool hashBufferRangeHelper(std::map<std::string, bool> map,
+bool hashBufferRangeHelper(const std::map<std::string, bool> & map,
         const std::string& left_key, const bool left_inclusive, 
         const std::string& right_key, const bool right_inclusive){
 
     if(left_key.compare(right_key) > 0)
         return false;
-    bool leftFlag = false;
-    bool rightFlag = false;
-    for (std::map<std::string, bool>::iterator i = map.begin(); i != map.end(); i++)
-    {
-        //leftkey is less than the left boundary in map
-        int leftBoundary = i->first.compare(left_key);
-        int rightBoundary = i->first.compare(right_key);
-        if((leftBoundary >= 0 && left_inclusive) || (leftBoundary > 0 && !left_inclusive ))
-            leftFlag = true;
-        if(leftFlag &&((rightBoundary <=0 && right_inclusive)||(rightBoundary < 0 && !right_inclusive)))
-            rightFlag = true;
-
-    }
-    return leftFlag && rightFlag;
+    auto it = left_inclusive? map.lower_bound(left_key) : map.upper_bound(left_key);
+    if (it == map.end()) return false;
+    int cmp = it->first.compare(right_key);
+    if (cmp>0) return false;
+    if (cmp==0) return right_inclusive;
+    return true;
 }
 
 bool DynamicSurf::lookupRange(const std::string& left_key, const bool left_inclusive, 
