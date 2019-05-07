@@ -1,0 +1,170 @@
+Buffer Size: 1500
+Estimated Buffer Mem Size: 13622.8
+===================================
+Basic surf: 
+Init with 5000 keys, 5502 micro sec
+Mem Size: 13911
+Insert 1000 keys, 1709 micro sec
+2000 point lookup 1251 micro sec FP and FP rate 0, 0%
+2000 range lookup 1437 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 1651 micro sec
+===================================
+Hash (8) surf: 
+Init with 5000 keys, 5816 micro sec
+Mem Size: 19278
+Insert 1000 keys, 1642 micro sec
+2000 point lookup 1221 micro sec FP and FP rate 0, 0%
+2000 range lookup 1423 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 1610 micro sec
+===================================
+Real (8) surf: 
+Init with 5000 keys, 5652 micro sec
+Mem Size: 19278
+Insert 1000 keys, 1637 micro sec
+2000 point lookup 1221 micro sec FP and FP rate 0, 0%
+2000 range lookup 1416 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 1602 micro sec
+===================================
+Mixed (8) surf: 
+Init with 5000 keys, 5935 micro sec
+Mem Size: 24278
+Insert 1000 keys, 1646 micro sec
+2000 point lookup 1245 micro sec FP and FP rate 0, 0%
+2000 range lookup 1424 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 1652 micro sec
+Buffer Size: 1500
+Estimated Buffer Mem Size: 13633.1
+===================================
+Basic surf: 
+Init with 5000 keys, 5401 micro sec
+Mem Size: 13739
+Insert 1000 keys, 1675 micro sec
+2000 point lookup 1411 micro sec FP and FP rate 0, 0%
+2000 range lookup 1650 micro sec FP and FP rate 988, 49%
+Delate all keys (that are just inserted) 1681 micro sec
+===================================
+Hash (8) surf: 
+Init with 5000 keys, 5807 micro sec
+Mem Size: 19257
+Insert 1000 keys, 1623 micro sec
+2000 point lookup 1255 micro sec FP and FP rate 0, 0%
+2000 range lookup 1545 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 1592 micro sec
+===================================
+Real (8) surf: 
+Init with 5000 keys, 5530 micro sec
+Mem Size: 19257
+Insert 1000 keys, 1621 micro sec
+2000 point lookup 1270 micro sec FP and FP rate 0, 0%
+2000 range lookup 1607 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 1836 micro sec
+===================================
+Mixed (8) surf: 
+Init with 5000 keys, 8712 micro sec
+Mem Size: 24257
+Insert 1000 keys, 2256 micro sec
+2000 point lookup 1664 micro sec FP and FP rate 0, 0%
+2000 range lookup 2227 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 2192 micro sec
+Buffer Size: 1500
+Estimated Buffer Mem Size: 15422.8
+===================================
+Basic surf: 
+Init with 5000 keys, 9157 micro sec
+Mem Size: 15214
+Insert 1000 keys, 2245 micro sec
+2000 point lookup 2016 micro sec FP and FP rate 0, 0%
+2000 range lookup 2287 micro sec FP and FP rate 837, 41%
+Delate all keys (that are just inserted) 2354 micro sec
+===================================
+Hash (8) surf: 
+Init with 5000 keys, 9504 micro sec
+Mem Size: 20665
+Insert 1000 keys, 2176 micro sec
+2000 point lookup 1719 micro sec FP and FP rate 0, 0%
+2000 range lookup 2352 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 2246 micro sec
+===================================
+Real (8) surf: 
+Init with 5000 keys, 9323 micro sec
+Mem Size: 20665
+Insert 1000 keys, 2207 micro sec
+2000 point lookup 1761 micro sec FP and FP rate 0, 0%
+2000 range lookup 2340 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 2300 micro sec
+===================================
+Mixed (8) surf: 
+Init with 5000 keys, 9689 micro sec
+Mem Size: 25665
+Insert 1000 keys, 2168 micro sec
+2000 point lookup 1740 micro sec FP and FP rate 0, 0%
+2000 range lookup 2363 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 2228 micro sec
+Buffer Size: 1500
+Estimated Buffer Mem Size: 13294.7
+===================================
+Basic surf: 
+Init with 5000 keys, 8151 micro sec
+Mem Size: 13777
+Insert 1000 keys, 2227 micro sec
+2000 point lookup 1942 micro sec FP and FP rate 0, 0%
+2000 range lookup 3846 micro sec FP and FP rate 1000, 50%
+Delate all keys (that are just inserted) 2279 micro sec
+===================================
+Hash (8) surf: 
+Init with 5000 keys, 8478 micro sec
+Mem Size: 18785
+Insert 1000 keys, 2176 micro sec
+2000 point lookup 1935 micro sec FP and FP rate 0, 0%
+2000 range lookup 3931 micro sec FP and FP rate 1000, 50%
+Delate all keys (that are just inserted) 2277 micro sec
+===================================
+Real (8) surf: 
+Init with 5000 keys, 9228 micro sec
+Mem Size: 18785
+Insert 1000 keys, 2205 micro sec
+2000 point lookup 1951 micro sec FP and FP rate 0, 0%
+2000 range lookup 3844 micro sec FP and FP rate 1000, 50%
+Delate all keys (that are just inserted) 2285 micro sec
+===================================
+Mixed (8) surf: 
+Init with 5000 keys, 8673 micro sec
+Mem Size: 23785
+Insert 1000 keys, 2188 micro sec
+2000 point lookup 1928 micro sec FP and FP rate 0, 0%
+2000 range lookup 3833 micro sec FP and FP rate 1000, 50%
+Delate all keys (that are just inserted) 2283 micro sec
+Buffer Size: 1500
+Estimated Buffer Mem Size: 12692.1
+===================================
+Basic surf: 
+Init with 5000 keys, 5246 micro sec
+Mem Size: 13025
+Insert 1000 keys, 1725 micro sec
+2000 point lookup 1194 micro sec FP and FP rate 0, 0%
+2000 range lookup 1446 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 1657 micro sec
+===================================
+Hash (8) surf: 
+Init with 5000 keys, 5431 micro sec
+Mem Size: 18025
+Insert 1000 keys, 1628 micro sec
+2000 point lookup 1177 micro sec FP and FP rate 0, 0%
+2000 range lookup 1390 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 1575 micro sec
+===================================
+Real (8) surf: 
+Init with 5000 keys, 5265 micro sec
+Mem Size: 18025
+Insert 1000 keys, 1611 micro sec
+2000 point lookup 1174 micro sec FP and FP rate 0, 0%
+2000 range lookup 1401 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 1579 micro sec
+===================================
+Mixed (8) surf: 
+Init with 5000 keys, 5577 micro sec
+Mem Size: 23492
+Insert 1000 keys, 1613 micro sec
+2000 point lookup 1166 micro sec FP and FP rate 0, 0%
+2000 range lookup 1404 micro sec FP and FP rate 0, 0%
+Delate all keys (that are just inserted) 1584 micro sec

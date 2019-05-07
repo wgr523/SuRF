@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
     std::cout << "Buffer Size: " << bufferSize<< std::endl;
     std::cout << "Estimated Buffer Mem Size: " <<(double)(size0+size1+size2)/(keys.size()+dataSet.size()+dataSetRef.size()) * bufferSize<< std::endl;
     std::cout<< "Init with " << keys.size() << " keys, " << duration << " micro sec" << std::endl;
-    std::cout << "Serialized Size: " <<surf->serializedSize()<< std::endl;
+    //std::cout << "Serialized Size: " <<surf->serializedSize()<< std::endl;
     std::cout << "Mem Size: " <<surf->getMemoryUsage()<< std::endl;
 
     eval(surf, dataSet, dataSetRef);

@@ -129,26 +129,24 @@ int main(int argc, char *argv[]) {
         std::cout<<"Please add 3 file names.";
         return 0;
     }
+    int bufferSize;
     std::vector<std::string> keys = { };
     std::vector<std::string> dataSet = { };
     std::vector<std::string> dataSetRef = { };
-    //std::vector<std::string> keys = {
-    //    "a"
-    //};
-
 
     int size0 = readFile(&keys, argv[1]);//size of keys of init
     int size1 = readFile(&dataSet, argv[2]);
     int size2 = readFile(&dataSetRef, argv[3]);
+
+    bufferSize = 1500;
+    std::cout << "Buffer Size: " << bufferSize<< std::endl;
+    std::cout << "Estimated Buffer Mem Size: " <<(double)(size0+size1+size2)/(keys.size()+dataSet.size()+dataSetRef.size()) * bufferSize<< std::endl;
 
     std::map<std::string, bool> mainMemory = {};
     for(auto const& key: keys) {
         mainMemory[key] = true;
     }
 
-    int bufferSize;
-    //initialize dynamic surf
-    bufferSize = 15000;
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
     DynamicSurf* surf = new DynamicSurf(keys,bufferSize,&mainMemory);//this may be changed
@@ -156,10 +154,72 @@ int main(int argc, char *argv[]) {
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>( t2 - t1 ).count();
 
-    std::cout << "Buffer Size: " << bufferSize<< std::endl;
-    std::cout << "Estimated Buffer Mem Size: " <<(double)(size0+size1+size2)/(keys.size()+dataSet.size()+dataSetRef.size()) * bufferSize<< std::endl;
+    std::cout << "===================================\nBasic surf: " << std::endl;
     std::cout<< "Init with " << keys.size() << " keys, " << duration << " micro sec" << std::endl;
-    std::cout << "Serialized Size: " <<surf->serializedSize()<< std::endl;
+    //std::cout << "Serialized Size: " <<surf->serializedSize()<< std::endl;
+    std::cout << "Mem Size: " <<surf->getMemoryUsage()<< std::endl;
+
+    eval(surf, dataSet, dataSetRef);
+
+    //
+    //
+
+    mainMemory.clear();
+    for(auto const& key: keys) {
+        mainMemory[key] = true;
+    }
+    t1 = high_resolution_clock::now();
+
+    surf = new DynamicSurf(keys, surf::kHash, 8, 0, bufferSize,&mainMemory);//this may be changed
+
+    t2 = high_resolution_clock::now();
+
+    duration = duration_cast<microseconds>( t2 - t1 ).count();
+    std::cout << "===================================\nHash (8) surf: " << std::endl;
+    std::cout<< "Init with " << keys.size() << " keys, " << duration << " micro sec" << std::endl;
+    //std::cout << "Serialized Size: " <<surf->serializedSize()<< std::endl;
+    std::cout << "Mem Size: " <<surf->getMemoryUsage()<< std::endl;
+
+    eval(surf, dataSet, dataSetRef);
+
+    //
+    //
+
+    mainMemory.clear();
+    for(auto const& key: keys) {
+        mainMemory[key] = true;
+    }
+    t1 = high_resolution_clock::now();
+
+    surf = new DynamicSurf(keys, surf::kReal, 0, 8, bufferSize,&mainMemory);//this may be changed
+
+    t2 = high_resolution_clock::now();
+
+    duration = duration_cast<microseconds>( t2 - t1 ).count();
+    std::cout << "===================================\nReal (8) surf: " << std::endl;
+    std::cout<< "Init with " << keys.size() << " keys, " << duration << " micro sec" << std::endl;
+    //std::cout << "Serialized Size: " <<surf->serializedSize()<< std::endl;
+    std::cout << "Mem Size: " <<surf->getMemoryUsage()<< std::endl;
+
+    eval(surf, dataSet, dataSetRef);
+
+    //
+    //
+
+    mainMemory.clear();
+    for(auto const& key: keys) {
+        mainMemory[key] = true;
+    }
+    t1 = high_resolution_clock::now();
+
+    surf = new DynamicSurf(keys, surf::kMixed, 8, 8, bufferSize,&mainMemory);//this may be changed
+
+    t2 = high_resolution_clock::now();
+
+    duration = duration_cast<microseconds>( t2 - t1 ).count();
+    std::cout << "===================================\nMixed (8) surf: " << std::endl;
+    std::cout<< "Init with " << keys.size() << " keys, " << duration << " micro sec" << std::endl;
+    //std::cout << "Serialized Size: " <<surf->serializedSize()<< std::endl;
     std::cout << "Mem Size: " <<surf->getMemoryUsage()<< std::endl;
 
     eval(surf, dataSet, dataSetRef);

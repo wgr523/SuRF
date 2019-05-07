@@ -1,0 +1,40 @@
+Buffer Size: 15000
+Estimated Buffer Mem Size: 136228
+Init with 5000 keys, 5665 micro sec
+Mem Size: 12531
+Insert 1000 keys, 6747658 micro sec
+2000 point lookup 1150 micro sec FP and FP rate 1, 0%
+2000 range lookup 1710 micro sec FP and FP rate 607, 30%
+Delate all keys (that are just inserted) 6756556 micro sec
+Buffer Size: 15000
+Estimated Buffer Mem Size: 136331
+Init with 5000 keys, 5539 micro sec
+Mem Size: 12379
+Insert 1000 keys, 6726052 micro sec
+2000 point lookup 1290 micro sec FP and FP rate 0, 0%
+2000 range lookup 2102 micro sec FP and FP rate 975, 48%
+Delate all keys (that are just inserted) 6734526 micro sec
+Buffer Size: 15000
+Estimated Buffer Mem Size: 154228
+Init with 5000 keys, 6455 micro sec
+Mem Size: 13718
+Insert 1000 keys, 7301820 micro sec
+2000 point lookup 1191 micro sec FP and FP rate 1, 0%
+2000 range lookup 2013 micro sec FP and FP rate 836, 41%
+Delate all keys (that are just inserted) 7282584 micro sec
+Buffer Size: 15000
+Estimated Buffer Mem Size: 132947
+Init with 5000 keys, 5421 micro sec
+Mem Size: 12393
+Insert 1000 keys, 6592561 micro sec
+2000 point lookup 1206 micro sec FP and FP rate 0, 0%
+2000 range lookup 2657 micro sec FP and FP rate 862, 43%
+Delate all keys (that are just inserted) 6632352 micro sec
+Buffer Size: 15000
+Estimated Buffer Mem Size: 126921
+Init with 5000 keys, 5349 micro sec
+Mem Size: 11733
+Insert 1000 keys, 6417853 micro sec
+2000 point lookup 1193 micro sec FP and FP rate 0, 0%
+2000 range lookup 2238 micro sec FP and FP rate 875, 43%
+Delate all keys (that are just inserted) 6560621 micro sec
